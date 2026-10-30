@@ -1,0 +1,326 @@
+{
+  "6": {
+    "inputs": {
+      "text": "Cinematic commercial shot of a black luxury sports car emerging from thick blue smoke in a dark studio. Dramatic blue rim lighting, glossy reflections, slow camera dolly forward, realistic lighting, premium automotive advertisement, high detail.",
+      "clip": [
+        "38",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)",
+      "cnr_id": "comfy-core",
+      "ver": "0.3.28"
+    }
+  },
+  "7": {
+    "inputs": {
+      "text": "low quality, worst quality, deformed, distorted, disfigured, motion smear, motion artifacts, fused fingers, bad anatomy, weird hand, ugly",
+      "clip": [
+        "38",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)",
+      "cnr_id": "comfy-core",
+      "ver": "0.3.28"
+    }
+  },
+  "38": {
+    "inputs": {
+      "clip_name": "t5xxl_fp8_e4m3fn_scaled.safetensors",
+      "type": "ltxv",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Загрузить CLIP",
+      "cnr_id": "comfy-core",
+      "ver": "0.3.28"
+    }
+  },
+  "44": {
+    "inputs": {
+      "ckpt_name": "ltxv-13b-0.9.8-distilled-fp8.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Загрузить сheckpoint",
+      "cnr_id": "comfy-core",
+      "ver": "0.3.28"
+    }
+  },
+  "73": {
+    "inputs": {
+      "sampler_name": "euler_ancestral"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "Выбор KSampler",
+      "cnr_id": "comfy-core",
+      "ver": "0.3.28"
+    }
+  },
+  "1206": {
+    "inputs": {
+      "image": "ccD1IpknGpqB9qPdSrRiJOX6SqrKoEyCYJRhakanesT4TVTRTxW---o-F9Tt3IAfYthEOR8aixiI1S8qf9T4Xsst92IC113GWlJDi8BLWPV_ZDtNtybN9peA0qJXCXh9lDXXVqHsS8kmZahVF2lodyvScwWeuFYaz2McNwQmB9KEr6M0XG9GZRQKMxIP5XiW.jfif"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Загрузить изображение",
+      "cnr_id": "comfy-core",
+      "ver": "0.3.30"
+    }
+  },
+  "1241": {
+    "inputs": {
+      "frame_rate": 24.000000000000004,
+      "positive": [
+        "6",
+        0
+      ],
+      "negative": [
+        "7",
+        0
+      ]
+    },
+    "class_type": "LTXVConditioning",
+    "_meta": {
+      "title": "Кондиционирование LTXV",
+      "cnr_id": "comfy-core",
+      "ver": "0.3.28"
+    }
+  },
+  "1335": {
+    "inputs": {
+      "samples": [
+        "1338",
+        0
+      ],
+      "vae": [
+        "1872",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "Декодировать VAE",
+      "cnr_id": "comfy-core",
+      "ver": "0.3.29"
+    }
+  },
+  "1336": {
+    "inputs": {
+      "frame_rate": 24,
+      "loop_count": 0,
+      "filename_prefix": "ltxv-base",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 19,
+      "save_metadata": true,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": true,
+      "images": [
+        "1335",
+        0
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
+  },
+  "1338": {
+    "inputs": {
+      "width": 512,
+      "height": 320,
+      "num_frames": 25,
+      "optional_cond_indices": "0",
+      "strength": 0.8,
+      "crop": "center",
+      "crf": 30,
+      "blur": 1,
+      "model": [
+        "44",
+        0
+      ],
+      "vae": [
+        "44",
+        2
+      ],
+      "guider": [
+        "1887",
+        0
+      ],
+      "sampler": [
+        "73",
+        0
+      ],
+      "sigmas": [
+        "1876",
+        0
+      ],
+      "noise": [
+        "1507",
+        0
+      ],
+      "optional_cond_images": [
+        "1206",
+        0
+      ]
+    },
+    "class_type": "LTXVBaseSampler",
+    "_meta": {
+      "title": "🅛🅣🅧 LTXV Base Sampler"
+    }
+  },
+  "1507": {
+    "inputs": {
+      "noise_seed": 118
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "Случайный шум",
+      "cnr_id": "comfy-core",
+      "ver": "0.3.28"
+    }
+  },
+  "1598": {
+    "inputs": {
+      "noise_seed": 1252
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "Случайный шум",
+      "cnr_id": "comfy-core",
+      "ver": "0.3.30"
+    }
+  },
+  "1813": {
+    "inputs": {
+      "skip_steps_sigma_threshold": 0.9970000000000002,
+      "cfg_star_rescale": true,
+      "sigmas": "1",
+      "cfg_values": "1",
+      "stg_scale_values": "0",
+      "stg_rescale_values": "1",
+      "stg_layers_indices": "[42]",
+      "apply_apg": false,
+      "apg_cfg_scale": 1,
+      "eta": 1,
+      "norm_threshold": 0,
+      "model": [
+        "44",
+        0
+      ],
+      "positive": [
+        "1241",
+        0
+      ],
+      "negative": [
+        "1241",
+        1
+      ]
+    },
+    "class_type": "STGGuiderAdvanced",
+    "_meta": {
+      "title": "🅛🅣🅧 STG Guider Advanced"
+    }
+  },
+  "1872": {
+    "inputs": {
+      "timestep": 0.05,
+      "scale": 0.025,
+      "seed": 42,
+      "vae": [
+        "44",
+        2
+      ]
+    },
+    "class_type": "Set VAE Decoder Noise",
+    "_meta": {
+      "title": "🅛🅣🅧 Set VAE Decoder Noise"
+    }
+  },
+  "1875": {
+    "inputs": {
+      "string": "1.0000, 0.9937, 0.9875, 0.9812, 0.9750, 0.9094, 0.7250, 0.4219, 0.0"
+    },
+    "class_type": "StringToFloatList",
+    "_meta": {
+      "title": "String to Float List",
+      "cnr_id": "comfyui-kjnodes",
+      "ver": "0addfc6101f7a834c7fb6e0a1b26529360ab5350"
+    }
+  },
+  "1876": {
+    "inputs": {
+      "float_list": [
+        "1875",
+        0
+      ]
+    },
+    "class_type": "FloatToSigmas",
+    "_meta": {
+      "title": "Float To Sigmas"
+    }
+  },
+  "1887": {
+    "inputs": {
+      "skip_steps_sigma_threshold": 0.9970000000000002,
+      "cfg_star_rescale": true,
+      "sigmas": "1.0, 0.9933, 0.9850, 0.9767, 0.9008, 0.6180",
+      "cfg_values": "1,1,1,1,1,1",
+      "stg_scale_values": "0,0,0,0,0,0",
+      "stg_rescale_values": "1, 1, 1, 1, 1, 1",
+      "stg_layers_indices": "[25], [35], [35], [42], [42], [42]",
+      "apply_apg": false,
+      "apg_cfg_scale": 1,
+      "eta": 1,
+      "norm_threshold": 0,
+      "model": [
+        "44",
+        0
+      ],
+      "positive": [
+        "1241",
+        0
+      ],
+      "negative": [
+        "1241",
+        1
+      ]
+    },
+    "class_type": "STGGuiderAdvanced",
+    "_meta": {
+      "title": "🅛🅣🅧 STG Guider Advanced"
+    }
+  },
+  "1888": {
+    "inputs": {
+      "string": "0.85, 0.7250, 0.6, 0.4219, 0.0"
+    },
+    "class_type": "StringToFloatList",
+    "_meta": {
+      "title": "String to Float List",
+      "cnr_id": "comfyui-kjnodes",
+      "ver": "0addfc6101f7a834c7fb6e0a1b26529360ab5350"
+    }
+  },
+  "1889": {
+    "inputs": {
+      "float_list": [
+        "1888",
+        0
+      ]
+    },
+    "class_type": "FloatToSigmas",
+    "_meta": {
+      "title": "Float To Sigmas"
+    }
+  }
+}

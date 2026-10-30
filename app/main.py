@@ -99,11 +99,13 @@ class LocalUploadGuard:
 
 
 def workflow(image, prompt, seed, preset, job_id):
-    graph = copy.deepcopy(json.loads((ROOT / 'workflows/ltx-i2v-api.json').read_text()))
-    graph['78']['inputs']['image'] = image
+    graph = copy.deepcopy(json.loads((ROOT / 'workflows/ltx13b-api.json').read_text()))
+    graph['1206']['inputs']['image'] = image
     graph['6']['inputs']['text'] = prompt.strip() + '\n' + PRESETS[preset]
-    graph['72']['inputs']['noise_seed'] = seed
-    graph['81']['inputs']['filename_prefix'] = f'opencinema/{job_id}'
+    graph['1336']['inputs']['filename_prefix'] = f'opencinema/{job_id}'
+    graph['1507']['inputs']['noise_seed'] = seed
+    graph['1598']['inputs']['noise_seed'] = seed
+    graph['1336']['inputs']['save_output'] = True
     return graph
 
 
@@ -233,7 +235,7 @@ def create_app(data=None, client=None):
         if pid in running:
             job['status'] = 'running'
             if not str(job.get('message', '')).startswith('Sampling'):
-                job['message'] = 'Generating locally · model loading, sampling or decoding'
+                job['message'] = 'Generating locally В· model loading, sampling or decoding'
         elif pid in pending:
             job.update(status='queued', message='Queued in ComfyUI')
         else:
