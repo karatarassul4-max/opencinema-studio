@@ -1,13 +1,29 @@
 # OpenCinema Studio
 
-A local cinematic image-to-video workspace powered by **real ComfyUI workflows** and **LTX-Video 2B v0.9.5**. Upload a frame, describe a scene, choose camera inspiration, and render an MP4 on your GPU.
+A local cinematic image-to-video workspace powered by **real ComfyUI workflows** and **LTX-Video 13B v0.9.8 Distilled FP8**. Upload a frame, describe a scene, choose camera inspiration, and render an MP4 on your GPU.
 
 ![OpenCinema Studio](docs/screenshots/studio-neutral.jpg)
 
-## Verified configuration
+## Current configuration
 
-Windows, RTX 3060 12GB, ComfyUI 0.43.1, dynamic offloading, tiled VAE decoding. Default output is **512×320, 25 frames, 24 fps, batch 1** (about 1.04 seconds). The first Studio browser render took **113.49 seconds in ComfyUI**. This is a measured single run, not a performance guarantee. Motion in the fox test is subtle. Camera presets append descriptive text; they do not provide deterministic camera trajectories.
+The current application uses **LTX-Video 13B v0.9.8 Distilled FP8**
+with ComfyUI on port 8189.
 
+- GPU: NVIDIA RTX 3060 12 GB
+- Output: 512 x 320, 25 frames, 24 fps
+- Workflow: `workflows/ltx13b-api.json`
+- Image input: `LoadImage` (node 1206)
+- Prompt: `CLIPTextEncode` (node 6)
+- Video output: `VHS_VideoCombine` (node 1336)
+- Output format: H.264 MP4
+
+The ComfyUI instance reports all 19 required node types as available.
+Full end-to-end generation through the updated Studio frontend
+has not yet been verified. The 13B workflow is memory-intensive;
+the observed successful ComfyUI preview is not a performance benchmark.
+
+Camera presets append descriptive prompt text rather than enforcing
+deterministic camera paths.
 ## Windows setup
 
 Prerequisites: Git, Python 3.11, and a working ComfyUI installation with the models below. Clone this repository to D: before running these commands.
@@ -26,35 +42,41 @@ The current workstation already has the application dependencies; `python -m uvi
 
 ### Models and workflow
 
-Place these exact files in the following folders (already present on the verified workstation):
+The current checkpoint is:
 
-| File | Folder | Approximate storage |
-| --- | --- | --- |
-| `ltx-video-2b-v0.9.5.safetensors` | `models/checkpoints/` | 5.91 GiB |
-| `t5xxl_fp8_e4m3fn_scaled.safetensors` | `models/text_encoders/` | 4.80 GiB |
+`ltxv-13b-0.9.8-distilled-fp8.safetensors`
 
-Sources and exact hashes: [model lock](config/models.lock.json). Review [model licenses](docs/ATTRIBUTION.md) before obtaining weights. Both dependencies total about 10.71 GiB; allow additional storage for environments and outputs. Downloads are deliberately not part of application startup. No custom nodes are needed. The checkpoint contains the VAE. The unscaled FP8 file is not the tested encoder.
+Install the checkpoint and its required text encoder, VAE
+dependencies and custom nodes in ComfyUI according to their
+respective upstream instructions and licenses.
 
-Update `config/extra_model_paths.yaml` if your checkout is elsewhere. Keep all model and artifact folders on D:. Import `workflows/ltx-i2v-ui.json` into ComfyUI to inspect the graph; the backend uses `workflows/ltx-i2v-api.json`. See [provenance](docs/workflow-provenance.md) and [Phase 2 evidence](docs/phase-2-report.md).
+The 13B workflow uses the ComfyUI LTXV nodes and
+VideoHelperSuite (`VHS_VideoCombine`). It is not compatible
+with the earlier 2B dependency list.
 
+The production API graph is `workflows/ltx13b-api.json`.
+The original 2B workflow is retained for reference.
+
+Model weights are not included in this repository.
 ### Launch
 
 Start ComfyUI first, using its existing environment. The script defaults to this workstation's Desktop installation and accepts `-ComfyRoot` for another installation:
 
 ```powershell
-powershell -File scripts/start-comfy.ps1
+# Start the LTX 13B ComfyUI instance separately on port 8189
 ```
 
 In a second terminal:
 
 ```powershell
 cd D:\comguopensource
+$env:COMFY_URL = "http://127.0.0.1:8189"
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
 ```
 
 Open **http://127.0.0.1:8000**. Upload a PNG/JPEG/WebP up to 10 MiB and 20 megapixels. English descriptive prompts work with the tested workflow. Keep ComfyUI dedicated to Studio while rendering. The application rejects overlapping jobs; it does not maintain an unlimited queue. Other ComfyUI clients can still submit directly, so do not render concurrently from its own UI.
 
-Optional environment variables: `COMFY_URL` (default `http://127.0.0.1:8188`) and `OPENCINEMA_DATA` (default `artifacts/studio`). Keep the latter on D:. This is a trusted, single-user loopback application, not an authenticated public service. Run exactly **one worker** and do not expose it to the Internet.
+Optional environment variables: `COMFY_URL` (default `http://127.0.0.1:8188`; set it explicitly to `http://127.0.0.1:8189` for LTX 13B) and `OPENCINEMA_DATA` (default `artifacts/studio`). Keep the latter on D:. This is a trusted, single-user loopback application, not an authenticated public service. Run exactly **one worker** and do not expose it to the Internet.
 
 ## API and recovery
 
@@ -89,7 +111,7 @@ flowchart LR
   Graph -->|HTTP prompt| Comfy[ComfyUI]
   Comfy -->|WebSocket sampling events| API
   API -->|HTTP history recovery| Comfy
-  Comfy --> GPU[LTX 2B + FP8 T5 / RTX 3060]
+  Comfy --> GPU[LTX 13B Distilled FP8 / RTX 3060]
   GPU --> Output[Comfy MP4]
   Output -->|validated view retrieval| Files[Local job artifacts]
   Files -->|range-capable video endpoint| UI
