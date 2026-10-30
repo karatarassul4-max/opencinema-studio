@@ -215,7 +215,7 @@ def create_app(data=None, client=None):
             if status.get('status_str') == 'error':
                 job.update(status='failed', message='ComfyUI generation failed. Check its console for model, memory or node errors.')
             elif status.get('completed'):
-                outputs = record.get('outputs', {}).get('81', {})
+                outputs = record.get('outputs', {}).get('1336', {})
                 items = [v for values in outputs.values() if isinstance(values, list) for v in values if isinstance(v, dict) and str(v.get('filename', '')).endswith('.mp4')]
                 if not items:
                     raise ValueError('Completed workflow did not return an MP4.')
