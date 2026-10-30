@@ -1,0 +1,4 @@
+opencinema:
+  base_path: D:/comguopensource/models
+  checkpoints: checkpoints
+  text_encoders: text_encoders

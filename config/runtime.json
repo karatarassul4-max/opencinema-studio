@@ -1,0 +1,17 @@
+{
+  "comfyui_version": "0.43.1",
+  "comfyui_commit": "086099f5",
+  "python": "3.13.12",
+  "torch": "2.12.1+cu130",
+  "comfy_cli": "1.23.0",
+  "comfy_mcp": "0.10.0",
+  "api_url": "http://127.0.0.1:8188",
+  "model_paths_config": "D:/comguopensource/config/extra_model_paths.yaml",
+  "input_directory": "D:/comguopensource/artifacts/input",
+  "output_directory": "D:/comguopensource/artifacts/output",
+  "gpu": "NVIDIA GeForce RTX 3060 12GB",
+  "driver": "581.57",
+  "model_storage_budget_gib": 30,
+  "custom_nodes_required": [],
+  "reserve_vram_gb": 2
+}
