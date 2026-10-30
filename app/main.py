@@ -1,6 +1,9 @@
 """Local-only OpenCinema service. Run exactly one Uvicorn worker."""
 import asyncio
 import copy
+import base64
+import binascii
+import secrets
 import io
 import json
 import os
@@ -28,6 +31,37 @@ PRESETS = {
 }
 LIMIT = 10 * 1024 * 1024
 Image.MAX_IMAGE_PIXELS = 20_000_000
+PUBLIC_HOST = os.getenv('OPENCINEMA_PUBLIC_HOST', '').lower().strip()
+DEMO_USER = os.getenv('OPENCINEMA_DEMO_USER', 'jury')
+DEMO_PASSWORD = os.getenv('OPENCINEMA_DEMO_PASSWORD', '')
+if PUBLIC_HOST and (not DEMO_PASSWORD or len(DEMO_PASSWORD) < 20):
+    raise RuntimeError('Public mode requires OPENCINEMA_DEMO_PASSWORD (20+ characters)')
+if PUBLIC_HOST and (':' in PUBLIC_HOST or '/' in PUBLIC_HOST or PUBLIC_HOST == '*'):
+    raise RuntimeError('OPENCINEMA_PUBLIC_HOST must be one exact DNS hostname')
+
+
+class DemoBasicAuth:
+    """Protect all pages, API endpoints and video files in public-demo mode."""
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope['type'] != 'http' or not PUBLIC_HOST:
+            return await self.app(scope, receive, send)
+        headers = dict(scope['headers'])
+        authorization = headers.get(b'authorization', b'')
+        valid = False
+        if authorization.startswith(b'Basic '):
+            try:
+                decoded = base64.b64decode(authorization[6:], validate=True).decode('utf-8')
+                user, password = decoded.split(':', 1)
+                valid = secrets.compare_digest(user, DEMO_USER) and secrets.compare_digest(password, DEMO_PASSWORD)
+            except (ValueError, UnicodeError, binascii.Error):
+                pass
+        if not valid:
+            return await JSONResponse({'detail': 'Authentication required'}, status_code=401,
+                headers={'WWW-Authenticate': 'Basic realm="OpenCinema Jury Demo"', 'Cache-Control': 'no-store'})(scope, receive, send)
+        return await self.app(scope, receive, send)
 
 
 class LocalUploadGuard:
@@ -40,8 +74,8 @@ class LocalUploadGuard:
             return await self.app(scope, receive, send)
         headers = dict(scope['headers'])
         origin = headers.get(b'origin')
-        expected = (scope.get('scheme', 'http') + '://' + headers.get(b'host', b'').decode()).encode()
-        if origin and origin != expected:
+        expected = (('https' if PUBLIC_HOST else scope.get('scheme', 'http')) + '://' + headers.get(b'host', b'').decode()).encode()
+        if (PUBLIC_HOST and not origin) or (origin and origin != expected):
             return await JSONResponse({'detail': 'Cross-origin requests are not allowed.'}, 403)(scope, receive, send)
         # Bound the entire multipart body, including chunked uploads and form fields.
         body = bytearray()
@@ -260,7 +294,8 @@ def create_app(data=None, client=None):
 
     app = FastAPI(title='OpenCinema Studio', lifespan=lifespan)
     app.add_middleware(LocalUploadGuard)
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1', 'localhost', '[::1]', 'testserver'])
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1', 'localhost', '[::1]', 'testserver'] + ([PUBLIC_HOST] if PUBLIC_HOST else []))
+    app.add_middleware(DemoBasicAuth)
     app.state.store, app.state.reconcile = store, reconcile
 
     @app.get('/api/health')
@@ -280,6 +315,12 @@ def create_app(data=None, client=None):
         async with lock:
             if store.active():
                 raise HTTPException(409, 'One generation is already active. Wait for it to finish.')
+            if PUBLIC_HOST:
+                # Hard cap GPU usage per rolling 24h for a shared jury demo.
+                recent = store.db.execute('SELECT body FROM jobs').fetchall()
+                count = sum(json.loads(row[0]).get('created', 0) > time.time() - 86400 for row in recent)
+                if count >= 10:
+                    raise HTTPException(429, 'Daily demo generation limit reached. Please watch the recorded demo.')
             job = dict(id=uuid.uuid4().hex, prompt=prompt, seed=seed, preset=preset, status='submitting', progress=0, message='Submitting workflow', created=time.time())
             try:
                 store.save(job)
