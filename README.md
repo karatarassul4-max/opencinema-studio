@@ -14,6 +14,8 @@ Prerequisites: Git, Python 3.11, and a working ComfyUI installation with the mod
 
 Use a separate Python 3.11 environment for Studio. Do not install Studio packages into ComfyUI's environment or upgrade its PyTorch installation.
 
+`requirements.txt` pins direct dependencies. For the exact dependency set validated in the fresh-clone audit, install `requirements-lock.txt` instead. See [final audit](docs/FINAL-AUDIT.md).
+
 ```powershell
 cd D:\comguopensource
 py -3.11 -m venv .venv
