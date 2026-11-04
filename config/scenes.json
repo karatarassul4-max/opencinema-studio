@@ -1,0 +1,26 @@
+{
+  "product": {
+    "label": "Product / Commercial",
+    "lighting": "Use lighting consistent with the opening frame, keeping product surfaces readable.",
+    "environment": "Keep product identity and scene geometry consistent as the viewpoint or subject moves.",
+    "motion": "Preserve product shape, markings and proportions throughout the requested motion."
+  },
+  "portrait": {
+    "label": "Cinematic Portrait",
+    "lighting": "Use lighting consistent with the opening frame, keeping facial details readable.",
+    "environment": "Keep the person recognizable and the setting spatially coherent as the viewpoint changes.",
+    "motion": "Maintain facial identity and coherent anatomy throughout the requested expressions and actions."
+  },
+  "landscape": {
+    "label": "Landscape / Nature",
+    "lighting": "Use lighting consistent with the opening frame and environment.",
+    "environment": "Maintain coherent terrain and spatial relationships as the viewpoint moves.",
+    "motion": "Let the described environmental motion unfold continuously without unintended scene changes."
+  },
+  "action": {
+    "label": "Action / Motion",
+    "lighting": "Use lighting consistent with the opening frame, keeping the action readable.",
+    "environment": "Keep the subject recognizable and the action spatially coherent as it unfolds.",
+    "motion": "Follow the requested speed, direction and scale of action with continuous anatomy and object geometry."
+  }
+}

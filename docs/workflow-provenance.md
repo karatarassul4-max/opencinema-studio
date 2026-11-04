@@ -1,3 +1,5 @@
+> **Historical v1 record.** This document describes an earlier release. For current v2 setup and behavior, see [README](../README.md). Old workstation paths, measurements and helper commands below are archival, not current instructions. Removed helpers remain available in Git history.
+
 # Phase 2 workflow provenance
 
 The baseline is the `ltxv_image_to_video.json` template bundled with

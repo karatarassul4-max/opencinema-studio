@@ -1,3 +1,5 @@
+> **Historical v1 record.** This document describes an earlier release. For current v2 setup and behavior, see [README](../README.md). Old workstation paths, measurements and helper commands below are archival, not current instructions. Removed helpers remain available in Git history.
+
 # Submission and demo checklist
 
 Official rules: https://comfy.org/open-source-higgsfield (checked 2026-10-30).

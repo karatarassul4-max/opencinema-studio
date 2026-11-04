@@ -35,7 +35,7 @@ class FakeComfy:
         if self.error:
             raise self.error
         self.queue['queue_running'] = [[0, 'pid', {}, {'opencinema_id': job['id']}]]
-        return 'pid', workflow(job['id']+'.png', job['prompt'], job['seed'], job['preset'], job['id'])
+        return 'pid', workflow(job['id']+'.png', job['prompt'], job['seed'], job['preset'], job['id'], job.get('scene'), job.get('mood', 'calm'), job.get('strength', 0.8), job.get('frames', 25))
 
 
 @pytest.fixture
@@ -53,13 +53,13 @@ def submit(c, **data):
 def test_workflow():
     original = workflow('a.png', 'Hello', 1, 'dolly', 'a')
     other = workflow('b.png', 'World', 2, 'orbit', 'b')
-    assert original['78']['inputs']['image'] == 'a.png'
-    assert other['72']['inputs']['noise_seed'] == 2
+    assert original['1206']['inputs']['image'] == 'a.png'
+    assert other['1507']['inputs']['noise_seed'] == 2
     assert 'orbit' in other['6']['inputs']['text']
-    assert original['77']['inputs']['length'] == 25
-    assert original['77']['inputs']['width'] == 512
-    assert original['80']['inputs']['fps'] == 24
-    assert original['81']['inputs']['format.codec'] == 'h264'
+    assert original['1338']['inputs']['num_frames'] == 25
+    assert original['1338']['inputs']['width'] == 512
+    assert original['1336']['inputs']['frame_rate'] == 24
+    assert original['1336']['inputs']['format'] == 'video/h264-mp4'
 
 
 @pytest.mark.parametrize('raw,mime,code', [(b'bad', 'image/png', 422), (b'x', 'text/html', 415), (b'x'*(10*1024*1024+1), 'image/png', 413)], ids=['corrupt','mime','oversize'])
@@ -80,7 +80,7 @@ def test_lifecycle_and_single_job(setup):
     job = r.json()
     assert submit(c).status_code == 409
     assert c.get('/api/jobs/'+job['id']+'/video').status_code == 409
-    fake.history = {'pid': {'status': {'completed': True, 'status_str': 'success'}, 'outputs': {'81': {'images': [{'filename': job['id']+'_00001_.mp4', 'subfolder': 'opencinema', 'type': 'output'}]}}}}
+    fake.history = {'pid': {'status': {'completed': True, 'status_str': 'success'}, 'outputs': {'1336': {'images': [{'filename': job['id']+'_00001_.mp4', 'subfolder': 'opencinema', 'type': 'output'}]}}}}
     # Explicit history reconciliation succeeds without a functioning WebSocket.
     c.portal.call(app.state.reconcile, job)
     assert c.get('/api/jobs/'+job['id']).json()['status'] == 'completed'
@@ -176,7 +176,7 @@ def test_real_comfy_adapter_contract(mode):
             return httpx.Response(200, json={'name': 'safe.png', 'subfolder': ''})
         if request.url.path == '/prompt':
             body = json.loads(request.content)
-            assert body['prompt']['78']['inputs']['image'] == 'safe.png'
+            assert body['prompt']['1206']['inputs']['image'] == 'safe.png'
             assert body['extra_data']['opencinema_id'] == 'a'*32
             if mode == 'missing_model':
                 return httpx.Response(400, json={'node_errors': {'44': 'missing checkpoint'}})

@@ -1,3 +1,5 @@
+> **Historical v1 record.** This document describes an earlier release. For current v2 setup and behavior, see [README](../README.md). Old workstation paths, measurements and helper commands below are archival, not current instructions. Removed helpers remain available in Git history.
+
 # Phase 3 — OpenCinema Studio verification
 
 Date: 2026-10-30. Local Windows workstation, RTX 3060 12GB. No new models, paid services or core ComfyUI/PyTorch upgrades were used. Existing system Python application packages were sufficient.
