@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-31",
+  "gpu_inference_performed": false,
+  "preserved": {
+    "workflows/ltx13b-v2-api.json": {
+      "before_sha256": "3574c0e4a0f4c0a75eb777da44dec44ef3ff9c191dcabce7cbd121b860ef5677",
+      "after_sha256": "3574c0e4a0f4c0a75eb777da44dec44ef3ff9c191dcabce7cbd121b860ef5677",
+      "unchanged": true
+    },
+    "workflows/ltx13b-v2-49f-experimental-api.json": {
+      "before_sha256": "44f1086059fd8c04e55095fbfa001c1814d18c1b59d251cb0327ca7540fe683d",
+      "after_sha256": "44f1086059fd8c04e55095fbfa001c1814d18c1b59d251cb0327ca7540fe683d",
+      "unchanged": true
+    },
+    "app/director.py": {
+      "before_sha256": "842666a73522fa6f54cc1e600bfd341424b6ed677d30b71db4d274cc048c2c97",
+      "after_sha256": "842666a73522fa6f54cc1e600bfd341424b6ed677d30b71db4d274cc048c2c97",
+      "unchanged": true
+    }
+  }
+}

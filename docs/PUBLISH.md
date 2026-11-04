@@ -1,3 +1,5 @@
+> **Historical v1 record.** This document describes an earlier release. For current v2 setup and behavior, see [README](../README.md). Old workstation paths, measurements and helper commands below are archival, not current instructions. Removed helpers remain available in Git history.
+
 # Publish the reviewed local commit
 
 The GitHub connector can identify the account but cannot create a repository. Local Git publishing credentials remain unavailable. Complete these steps in PowerShell; never paste tokens into chat.

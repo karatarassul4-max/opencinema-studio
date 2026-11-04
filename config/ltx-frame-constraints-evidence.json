@@ -1,0 +1,45 @@
+{
+  "verified_date": "2026-10-31",
+  "endpoint": "http://127.0.0.1:8189/object_info/LTXVBaseSampler",
+  "method": "GET only; no prompt, validation POST, uploads or inference",
+  "live_required_inputs": {
+    "width": [
+      "INT",
+      {
+        "default": 768,
+        "min": 64,
+        "max": 16384,
+        "step": 32
+      }
+    ],
+    "height": [
+      "INT",
+      {
+        "default": 512,
+        "min": 64,
+        "max": 16384,
+        "step": 32
+      }
+    ],
+    "num_frames": [
+      "INT",
+      {
+        "default": 97,
+        "min": 1,
+        "max": 16384,
+        "step": 8
+      }
+    ]
+  },
+  "source_files": [
+    {
+      "path": "custom_nodes/ComfyUI-LTXVideo/easy_samplers.py",
+      "sha256": "7500c4046432f915be8ffecf37575e97c11b65a6baac44309a1a6cf9b04da0ae"
+    },
+    {
+      "path": "comfy_extras/nodes_lt.py",
+      "sha256": "09ddb30d42244d64ae72e9c64261d1a6b4c512afe0570372222c43dbebd64243"
+    }
+  ],
+  "temporal_latent_formula": "((length - 1) // 8) + 1"
+}

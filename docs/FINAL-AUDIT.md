@@ -1,3 +1,5 @@
+> **Historical v1 record.** This document describes an earlier release. For current v2 setup and behavior, see [README](../README.md). Old workstation paths, measurements and helper commands below are archival, not current instructions. Removed helpers remain available in Git history.
+
 # Final repository and submission audit
 
 Checked 2026-10-30. No new features, inference runs or model downloads were introduced during final preparation.

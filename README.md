@@ -1,128 +1,162 @@
-# OpenCinema Studio
+# OpenCinema Studio v2
 
-A local cinematic image-to-video workspace powered by **real ComfyUI workflows** and **LTX-Video 13B v0.9.8 Distilled FP8**. Upload a frame, describe a scene, choose camera inspiration, and render an MP4 on your GPU.
+**Give your stills a story.** A local image-to-video workspace with AI Director controls, real ComfyUI execution, and a separate HD export stage. Built with Python and FastAPI around **LTX-Video 13B v0.9.8 Distilled FP8**, developed on an **NVIDIA RTX 3060 with 12 GB VRAM**.
 
-![OpenCinema Studio](docs/screenshots/studio-neutral.jpg)
+[Repository](https://github.com/karatarassul4-max/opencinema-studio) · [Release notes](docs/V2-RELEASE.md) · [Architecture](docs/V2-ARCHITECTURE.md) · [License](LICENSE)
 
-## Current configuration
+## Demo and screenshots
 
-The current application uses **LTX-Video 13B v0.9.8 Distilled FP8**
-with ComfyUI on port 8189.
+**Final demo video:** _DEMO_VIDEO_URL — to be added after the final recording._
 
-- GPU: NVIDIA RTX 3060 12 GB
-- Output: 512 x 320, 25 frames, 24 fps
-- Workflow: `workflows/ltx13b-api.json`
-- Image input: `LoadImage` (node 1206)
-- Prompt: `CLIPTextEncode` (node 6)
-- Video output: `VHS_VideoCombine` (node 1336)
-- Output format: H.264 MP4
+![OpenCinema Studio v2: offline interface with AI Director controls](docs/screenshots/studio-v2-offline.png)
 
-The ComfyUI instance reports all 19 required node types as available.
-Full end-to-end generation through the updated Studio frontend
-has not yet been verified. The 13B workflow is memory-intensive;
-the observed successful ComfyUI preview is not a performance benchmark.
+The screenshot shows the real v2 interface with offline fixture data, GPU disabled and no generated media. It illustrates the application, not an inference result. The older neutral v1 screenshot remains in the repository as historical material.
 
-Camera presets append descriptive prompt text rather than enforcing
-deterministic camera paths.
-## Windows setup
+### Cinematic Smoke Reveal
 
-Prerequisites: Git, Python 3.11, and a working ComfyUI installation with the models below. Clone this repository to D: before running these commands.
+The demonstration concept uses an owned or licensed opening image, a smoke-reveal description, camera guidance, and a short MP4 followed by optional HD export. It is intended to show the complete user flow for the Open Source Higgsfield Challenge: preview the final prompt, generate a scene, inspect the result and export it. The final recording and output-quality evidence are pending; the repository does not include a generated demo video or claim a verified smoke trajectory.
 
-Use a separate Python 3.11 environment for Studio. Do not install Studio packages into ComfyUI's environment or upgrade its PyTorch installation.
+## Features
 
-`requirements.txt` pins direct dependencies. For the exact dependency set validated in the fresh-clone audit, install `requirements-lock.txt` instead. See [final audit](docs/FINAL-AUDIT.md).
+- **Image to video:** upload PNG, JPEG or WebP; enter a prompt; choose a seed, conditioning strength and duration; preview/download H.264 MP4.
+- **AI Director:** deterministic scene, mood and lighting guidance, Dolly / Orbit / Crane / Static presets, and a read-only final-prompt preview. Explicit camera wording in your description takes precedence. Camera presets are prompt-based suggestions, **not guaranteed trajectories**; there is no hosted LLM dependency.
+- **HD Export:** a separate RealESRGAN workflow, persisted job status, output ownership/dimension/frame checks and an HD download link. A standard 512×320 result targets 1280×800. The button enables immediately on a completed generation when inference is enabled; source metadata is checked by the backend before submission.
+- **Recovery:** SQLite reservations, ComfyUI HTTP history/queue reconciliation and WebSocket progress, including ambiguous-submission recovery without automatically duplicating work.
+- **Performance history:** requested/observed frame counts, total elapsed time, explicitly approximate execution/queue timing and optional device-wide GPU observations. Missing values remain unavailable, not zero.
+- **Safeguards:** bounded uploads and image dimensions, exact duration/strength allowlists, one active Studio GPU job, busy-ComfyUI checks, same-origin POST checks and an offline default.
 
-```powershell
-cd D:\comguopensource
-py -3.11 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-```
+## Duration and render settings
 
-The current workstation already has the application dependencies; `python -m uvicorn app.main:app --host 127.0.0.1 --port 8000` also works there.
+| Frames | Nominal duration at 24 FPS | Evidence / intended use |
+|---|---:|---|
+| 25 | 1.04 s | Baseline; earlier successful GPU run manually reported |
+| 49 | 2.04 s | Experimental; earlier successful GPU run manually reported |
+| 73 | 3.04 s | Experimental; GPU feasibility not established by this release audit |
+| 97 | 4.04 s | Experimental; GPU feasibility not established by this release audit |
 
-### Models and workflow
+The UI supports clips **up to approximately 4 seconds**, not an assurance that every option fits every GPU. Standard output is 512×320, 24 FPS, batch 1. Conditioning strength is 0.80 or 0.85; 0.85 is experimental. Eight sampling steps are standard; a separate six-step experiment is selectable only at 97 frames. Scene/camera/mood presets change prompt guidance, not output resolution.
 
-The current checkpoint is:
+No GPU generation was run to publish this release. Earlier roughly 60-second observations for 25/49 frames were manually reported, not instrumented benchmarks; they are not speed promises. The application records new timings when you run it.
 
-`ltxv-13b-0.9.8-distilled-fp8.safetensors`
+## Technology and architecture
 
-Install the checkpoint and its required text encoder, VAE
-dependencies and custom nodes in ComfyUI according to their
-respective upstream instructions and licenses.
-
-The 13B workflow uses the ComfyUI LTXV nodes and
-VideoHelperSuite (`VHS_VideoCombine`). It is not compatible
-with the earlier 2B dependency list.
-
-The production API graph is `workflows/ltx13b-api.json`.
-The original 2B workflow is retained for reference.
-
-Model weights are not included in this repository.
-### Launch
-
-Start ComfyUI first, using its existing environment. The script defaults to this workstation's Desktop installation and accepts `-ComfyRoot` for another installation:
-
-```powershell
-# Start the LTX 13B ComfyUI instance separately on port 8189
-```
-
-In a second terminal:
-
-```powershell
-cd D:\comguopensource
-$env:COMFY_URL = "http://127.0.0.1:8189"
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
-```
-
-Open **http://127.0.0.1:8000**. Upload a PNG/JPEG/WebP up to 10 MiB and 20 megapixels. English descriptive prompts work with the tested workflow. Keep ComfyUI dedicated to Studio while rendering. The application rejects overlapping jobs; it does not maintain an unlimited queue. Other ComfyUI clients can still submit directly, so do not render concurrently from its own UI.
-
-Optional environment variables: `COMFY_URL` (default `http://127.0.0.1:8188`; set it explicitly to `http://127.0.0.1:8189` for LTX 13B) and `OPENCINEMA_DATA` (default `artifacts/studio`). Keep the latter on D:. This is a trusted, single-user loopback application, not an authenticated public service. Run exactly **one worker** and do not expose it to the Internet.
-
-## API and recovery
-
-| Endpoint | Purpose |
-| --- | --- |
-| `POST /api/jobs` | Multipart `image`, `prompt`, `preset` (`dolly`, `orbit`, `crane`, `static`), `seed` (0–4294967295); returns 202 and job |
-| `GET /api/jobs/{id}` | Persisted status, sampling progress, message, seed and Comfy prompt ID |
-| `GET /api/jobs/{id}/video` | Job-owned MP4, supports HTTP ranges for playback |
-| `GET /api/health` | ComfyUI reachability, device names, active job ID |
-
-SQLite stores the active reservation before submission. HTTP history and queue polling recover state after WebSocket disconnection or backend restart. An ambiguous submission is reconciled using its job tag; it is never automatically resubmitted. If ComfyUI is offline, restart it and leave Studio open. If queue/history no longer contain the job, Studio reports failure and allows an explicit retry. Do not clear ComfyUI history during an active generation.
-
-Progress is sampling progress (0–95%); 100% means an MP4 has been retrieved. Model loading and decoding have no reliable percentage. A completed result survives a browser refresh. No cancel endpoint, automatic disk cleanup or job gallery is implemented yet.
-
-Inputs are decoded and re-encoded with Pillow; filenames are generated UUIDs. The backend validates the specific SaveVideo output before fetching it, then serves only its local copy. Request bodies, image dimensions, MIME types, presets, seeds and prompt lengths are bounded. Cross-origin POSTs and unknown Host headers are rejected.
-
-## Tests
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest -q
-```
-
-Automated tests use a fake Comfy service and do not consume GPU time. They cover upload validation, immutable graph injection, lifecycle, single-job reservation, restart reconciliation, operation without WebSocket, Comfy failures, safe output paths, range retrieval and HTTP guards. Actual browser/GPU verification is documented separately in [Phase 3 report](docs/phase-3-report.md).
-
-## Architecture
+Python 3.11 · FastAPI / Uvicorn · SQLite · HTTPX / WebSockets · Pillow · vanilla JavaScript / CSS · ComfyUI · LTX-Video · RealESRGAN · FFmpeg/ffprobe
 
 ```mermaid
 flowchart LR
-  UI[Studio browser] -->|multipart image + direction| API[FastAPI on loopback]
-  API --> DB[(SQLite jobs)]
-  API -->|deep-copy + inject| Graph[Versioned API graph]
-  Graph -->|HTTP prompt| Comfy[ComfyUI]
-  Comfy -->|WebSocket sampling events| API
-  API -->|HTTP history recovery| Comfy
-  Comfy --> GPU[LTX 13B Distilled FP8 / RTX 3060]
-  GPU --> Output[Comfy MP4]
-  Output -->|validated view retrieval| Files[Local job artifacts]
-  Files -->|range-capable video endpoint| UI
+    UI[Browser: image + Director controls] --> API[FastAPI: validation and job reservation]
+    API --> DB[(SQLite: jobs and measurements)]
+    API --> Director[Deterministic prompt composer]
+    Director --> Workflow[Selected LTX workflow]
+    Workflow --> Comfy[ComfyUI HTTP + WebSocket]
+    Comfy --> Video[Job-owned MP4]
+    Video --> UI
+    UI --> HD[Separate HD job]
+    HD --> Comfy
 ```
 
-Artifacts include normalized input, submitted workflow, history, sampled progress events and MP4. They live under ignored `artifacts/`; model weights are also ignored. UI screenshots are the only media explicitly allowed under `docs/screenshots/`. Do not commit generated videos or uploaded images. Demo media should be shared separately after confirming input rights.
+The Studio Python environment is separate from ComfyUI. See [architecture and recovery](docs/V2-ARCHITECTURE.md) for the state machine and deployment boundary.
 
-## Hackathon
+## Hardware and prerequisites
 
-See [submission checklist and recording script](docs/SUBMISSION.md). The code is MIT; third-party workflows, models and example images retain their own terms. [Attribution](docs/ATTRIBUTION.md) explains the separation. No paid API, cloud inference or mock video is used.
+Development hardware: RTX 3060 12 GB VRAM. This is a development reference, not a universal minimum or guarantee for 73/97-frame or HD workloads. ComfyUI model loading, other GPU applications and input duration affect memory use. HD upscale may process a batch of frames and can also run out of memory. Allow sufficient system RAM, commit capacity and disk space for models, uploads and generated outputs; no automatic retention policy is implemented.
 
-### Reuse existing weights in another clone
+Install Git and Python 3.11 for Studio, Node.js 22 for the offline JavaScript checks, and FFmpeg/ffprobe for video metadata inspection (ffprobe is required for HD validation). Maintain your existing working ComfyUI environment separately; installing Studio does not install CUDA, torch, checkpoints or custom nodes.
 
-Do not run the model downloader again. Keep the existing ComfyUI process running with its D: model configuration, then launch Studio from the new clone. Studio uploads inputs over HTTP and does not require a local copy of the weights. If restarting ComfyUI, set `base_path` in the clone's `config/extra_model_paths.yaml` to the existing model directory. No junction or copy is required.
+## Installation
+
+The documented development directory is `D:\comguopensource-v2`; another writable clone directory is supported. Do not overwrite an existing working tree or the legacy v1 directory.
+
+```powershell
+git clone https://github.com/karatarassul4-max/opencinema-studio.git D:\comguopensource-v2
+cd D:\comguopensource-v2
+py -3.11 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
+```
+
+Until the v2 pull request is merged, check out `release/opencinema-studio-v2` after cloning. `requirements.txt` pins direct dependencies; `requirements-lock.txt` records the full pinned application environment. Neither installs ComfyUI packages. This release was checked with Python 3.11.9 and Node.js 22.20.0 on Windows; a fresh dependency installation was not performed during publication.
+
+## ComfyUI and model setup
+
+Prepare ComfyUI independently using its upstream instructions. Studio defaults to `http://127.0.0.1:8189` and does not start or stop ComfyUI.
+
+Required generation assets, as referenced by the checked-in graphs:
+
+| Asset | Expected filename / provider |
+|---|---|
+| Checkpoint (with VAE output) | `ltxv-13b-0.9.8-distilled-fp8.safetensors` from [Lightricks](https://huggingface.co/Lightricks/LTX-Video) |
+| Text encoder | `t5xxl_fp8_e4m3fn_scaled.safetensors` from [ComfyUI text encoders](https://huggingface.co/comfyanonymous/flux_text_encoders) |
+| LTX workflow nodes | [ComfyUI-LTXVideo](https://github.com/Lightricks/ComfyUI-LTXVideo), including `LTXVBaseSampler`, `STGGuiderAdvanced` and `Set VAE Decoder Noise` |
+| Video I/O | [VideoHelperSuite](https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite), including `VHS_VideoCombine`; HD also requires `VHS_LoadVideoPath` |
+| Optional HD model | `RealESRGAN_x4plus.pth` from [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN), exposed by ComfyUI's UpscaleModelLoader |
+
+Install assets into your own ComfyUI model directories according to upstream instructions and license terms. This repository distributes no weights and does not automatically download them. Import/inspect `workflows/ltx13b-v2-api.json` and ensure all required nodes are available before enabling inference. Exact custom-node compatibility on another installation still needs verification; do not blindly upgrade a working GPU environment.
+
+HD uses a source MP4 filesystem path, so Studio and ComfyUI must share access to that path (the developed setup is on one Windows machine). Remote ComfyUI may work for HTTP-upload generation, but HD is not portable to a remote host without deliberate shared-path handling. No automatic network share is configured.
+
+## Configuration and launch
+
+Configuration is read from the process environment; `.env` files are **not automatically loaded**.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `OPENCINEMA_V2_COMFY_URL` | `http://127.0.0.1:8189` | ComfyUI endpoint |
+| `OPENCINEMA_V2_ENABLE_INFERENCE` | `0` | Set to `1` only when ready to submit GPU jobs |
+| `OPENCINEMA_V2_DATA` | `<project>/artifacts/studio` | Must resolve to a subdirectory of this clone; keeps v2 data separate |
+| `OPENCINEMA_V2_GPU_MONITOR` | `0` | Optional read-only device telemetry; polling can miss peaks and includes other applications |
+| `UVICORN_HOST` | `127.0.0.1` in the launcher | Backend bind address |
+| `UVICORN_PORT` | `8001` in the launcher | Backend port |
+
+Start with the offline preview:
+
+```powershell
+cd D:\comguopensource-v2
+$env:OPENCINEMA_V2_COMFY_URL = "http://127.0.0.1:8189"
+$env:OPENCINEMA_V2_ENABLE_INFERENCE = "0"
+$env:UVICORN_HOST = "127.0.0.1"
+$env:UVICORN_PORT = "8001"
+.\scripts\start-v2.ps1
+```
+
+Open **http://127.0.0.1:8001**. Use exactly **one Uvicorn worker**. To generate, launch your own instance with inference set to `1` after confirming ComfyUI is ready. Do not start a second backend on a port already used by your demo.
+
+An optional private-demo mode exists through `OPENCINEMA_V2_PUBLIC_HOST`, `OPENCINEMA_V2_DEMO_USER` and `OPENCINEMA_V2_DEMO_PASSWORD`. It requires one exact hostname and a password of at least 20 characters; all routes are protected by Basic Auth in that mode. Supply secrets privately at runtime, use HTTPS in front of it and never commit credential values. This is a single-user demonstration system, not a hardened multi-tenant hosted service. No tunnel, proxy or service deployment is performed by the release.
+
+## Generate and export
+
+1. Upload an owned/licensed image (PNG/JPEG/WebP, up to 10 MiB and 20 megapixels).
+2. Describe the scene, choose scene/mood/camera guidance, strength, seed and duration. Preview the final prompt before submitting.
+3. Generate with inference enabled. Sampling progress is not a time estimate; 100% means an MP4 was retrieved.
+4. Preview or download the original. **Export HD** becomes available immediately on completion; the server checks eligibility and reserves a separate job.
+5. Download HD once validated. HD preserves the inspected source frame rate/count and aspect ratio, targeting width 1280 (1280×800 for standard output). It is an upscale, not native high-resolution LTX generation or temporal interpolation.
+
+Do not submit directly from another ComfyUI client concurrently. Studio rejects its own overlapping jobs, but cannot prevent a different client from using the same GPU. Recovery relies on retained ComfyUI queue/history. A lost ambiguous request is reconciled rather than blindly resubmitted.
+
+## Tests and release validation
+
+```powershell
+$env:PYTEST_DISABLE_PLUGIN_AUTOLOAD = "1"
+.\.venv\Scripts\python.exe -B -m pytest -q -p no:cacheprovider
+node --check app/static/app.js
+node tests/test_frontend_duration.cjs
+```
+
+**215 Python tests passed**, plus the offline JavaScript duration/HD-state harness. Tests use fake ComfyUI/HTTP transports, disable inference/monitoring and block external socket connections. Test data lives under ignored `artifacts/offline-tests`; the harness never uses the live demo database. HD tests fake ffprobe and validate success, duplicate protection, wrong output metadata and unsafe output paths. One upstream Starlette/AnyIO deprecation warning remains. See [release validation](docs/V2-RELEASE.md).
+
+## Engineering lessons
+
+- Persist a reservation before submission; a dropped HTTP response does not prove that ComfyUI rejected the job.
+- Keep camera guidance explicit and inspectable; a prompt preset cannot promise geometric control.
+- Distinguish requested durations from observed video metadata, and measured wall time from approximate event-derived timing.
+- Derive button state from the newest job before asynchronous refreshes. Stale HD responses must not overwrite a newly selected job.
+- Treat HD as a separate job with its own provenance and output validation. Do not change the LTX pipeline to repair a UI state bug.
+
+## Limitations
+
+GPU execution, 73/97-frame viability, HD quality and performance were not revalidated during this release. Fixed 512×320 generation and experimental longer durations are intentional. Output content/camera fidelity is not guaranteed. Missing nodes/models or ffprobe can prevent generation/export. There is no cancel API, multi-user isolation, automatic disk cleanup or guaranteed real-time generation. Old jobs may lack measurements. The LTX 2.5 research/lab is separate and is **not** the released model pipeline.
+
+## License and attribution
+
+Application code: [MIT](LICENSE), OpenCinema contributors. ComfyUI, model weights, custom nodes, workflow templates and user media retain their own terms. Review the exact model release license before use; the application license does not relicense weights or generated-content rights. See [attribution](docs/ATTRIBUTION.md) and the preserved [workflow-template notice](docs/licenses/workflow-templates-MIT.txt).
+
+The release retains historical v1 documentation and workflows as explicitly marked references. Current setup is this README; historical workstation paths and measurements are not v2 defaults.
